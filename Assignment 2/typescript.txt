@@ -1,0 +1,2231 @@
+Script started on Sun 13 Apr 2014 12:53:00 PM EDT
+kbpatel13@matrix:~/oop344_new/Assignment2> whoami
+kbpatel13
+kbpatel13@matrix:~/oop344_new/Assignment2> cat cfh[Kg.h cfar[K[Krame.h cframe.cpp cfield. h cfiels[Kd.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp console plus.h consolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp 3[K[K[A[Akbpatel13@matrix:~/oop344_new/Assignment2> cat cfg.h cframe.h cframe.cpp cfield.h cfield.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp consoleplus.h coonsolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp [K[Akbpatel13@matrix:~/oop344_new/Assignment2> cat cfg.h cframe.h cframe.cpp cfield.hh cfield.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp consolepplus.h consolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp [K[A[Akbpatel13@matrix:~/oop344_new/Assignment2> cat cfg.h cframe.h cframe.cpp cfield.h cfield.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp consoleplus.h coonsolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp [K[Akbpatel13@matrix:~/oop344_new/Assignment2> cat cfg.h cframe.h cframe.cpp cfield.hh cfield.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp consolepplus.h consolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp consolebackup .h console.h console.cpp keys.h a2test.cpp
+/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+#ifndef cfg_h
+#define cfg_h
+#include <cstdlib>
+
+#define C_MAX_NO_FIELDS                 100
+#define C_BUTTON_HIT                      1
+#define C_NOT_EDITABLE                    0
+#define C_BORDER_CHARS			"/-\\|/-\\|"
+#define C_FULL_FRAME					 -1
+#define C_NO_FRAME						  0
+#define C_NOT_EDITABLE					  0
+#define C_BUTTON_HIT					  1
+#ifndef NULL
+#define NULL                       (void*)0
+#endif
+namespace cio {
+    enum CDirection {C_STATIONARY, C_MOVED_LEFT, C_MOVED_RIGHT, C_MOVED_UP, C_MOVED_DOWN};
+}
+#endif
+
+/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+#ifndef CFrame_H
+#define CFrame_H
+#include "iframe.h"
+#include "keys.h"
+
+namespace cio {
+
+class CFrame : public iFrame {
+	protected:
+		int _row;
+		int _col;
+		int _width;
+		int _height;
+		bool _visible;
+		const char* _str;
+		CFrame* _cframe;
+		char _border[9];
+		bool _fullscreen;
+		void* _covered;
+		void setLine(char* str, char left, char fill, char right) const;
+		void capture();
+		int absrow() const;
+		int abscol() const;
+
+	public:
+		CFrame(int Row = -1, int Col = -1, int Width = -1, int Height = -1, bool Visible = false, const char* Border=C_BORDER_CHARS, CFrame* Frame = 0);
+		void goMiddle();
+		void bordered(bool);
+		bool bordered() const;
+		~CFrame();
+		void frame(CFrame*);
+		CFrame* frame() const;
+		
+		void row(int);
+		int row() const;
+		void col(int);
+		int col() const;
+		void height(int);
+		int height() const;
+
+		void width(int);
+		int width() const;
+		//pure virtual function from interface
+		void draw(int fn = C_FULL_FRAME);
+		void hide(CDirection dir = C_STATIONARY);
+		void move(CDirection dir);
+	};
+		void move(cio::iFrame&);
+
+}
+#endif/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CFrame.cpp
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <cstring>
+#include "console.h"
+#include "consoleplus.h"
+#include "cframe.h"
+#include "consolebackup.h"
+using namespace std;
+
+namespace cio { // continuation of cio namespace
+CFrame::CFrame(int row, int col, int width, int height, bool visible, const char* border, CFrame* frame) {
+	if(height < 0) {
+		_fullscreen = true;  //when height or width is less than 0 , screen is full screen
+		_row = row;
+		_col = col;
+		_width = console.getCols();
+		_height = console.getRows();
+		_border[0] = '\0';
+		_visible = false;
+		_cframe = frame;
+		_covered = NULL;
+	}
+	else {
+		_row = row;
+		_col = col;
+		_width = width;
+		_height = height;
+		_visible = visible; 
+		if(border == NULL || strlen(border) < 8) {
+			strcpy(_border, (char*)C_BORDER_CHARS);
+		}
+		else {
+			strcpy(_border, border);
+		}
+		_border[8] = '\0';			
+		_cframe = frame;
+		_covered = NULL;
+		_fullscreen = false;
+	}
+}
+void CFrame:: goMiddle() {											 //set the ponter to the middle of the string
+	if(_visible) {
+		  console.setPosition(absrow() + 1, abscol() + _width / 2);  //set curpostion if border is visible
+	}
+	else {
+		  console.setPosition(absrow(), abscol() - 1 + _width / 2);	 //set curpostion if border is not visible
+	}	
+}
+void CFrame::bordered(bool b) {										 // set border visibility				
+	_visible = b;
+}
+bool CFrame::bordered() const {										//return border visibility
+	return _visible;
+}
+CFrame::~CFrame(){												   //destructor					
+	if (_cframe) {
+		delete[] (char*)_covered;
+		_covered = NULL;
+	}
+}		
+void CFrame::frame(CFrame* cf) {									//set parent frame
+	_cframe = cf;
+}
+CFrame* CFrame::frame() const {										//return parent frame
+	return _cframe;
+}
+void CFrame::setLine(char* str, char left, char fill, char right) const {
+	int i;
+	str[0] = left;
+	for(i = 1; i < _width - 1; i++) {								//width -1 to fill right char at the end
+		str[i] = fill;
+	}
+	str[i] = right;
+	str[i + 1] = '\0';
+}		
+int CFrame::absrow() const {										//absrow function
+	if(frame() == NULL || _fullscreen) {
+		return _row; 
+	}
+	else {
+		int r;	
+		r = _row;
+		CFrame* temp = frame();
+		while(temp) {
+			r += temp -> absrow();									//travelling to top most row
+			temp = temp -> frame();									//find parent of parent till true
+		}
+	if(frame() -> bordered()) r++;
+	free(temp);
+	return r;
+	}
+}
+int CFrame::abscol() const {										//abscol function
+	if(frame() == NULL || _fullscreen) {
+		return _row; 
+	}
+	else {
+		int c;	
+		c = _col;
+		CFrame* temp = frame();
+		while(temp) {	
+			c += temp -> abscol();
+			temp = temp -> frame();								//travelling  to left most col
+		}
+	if(frame() -> bordered()) c++;
+	free(temp);
+	return c;
+	}	
+}
+		
+void CFrame::capture() {										//capture memory area in pointer
+	if(!_covered) {  
+		_covered = cio::capture(absrow(), abscol(), _height, _width);
+	}
+} 
+void CFrame::row(int r) {										//set row
+	_row = r;
+}
+
+int CFrame::row() const {										//return row
+	if(_fullscreen) {
+		return 0;
+	}
+	return _row;
+}	
+void CFrame::col(int c) {										//set column
+	_col = c;
+}
+int CFrame::col() const {										//return column
+	if(_fullscreen) {
+		return 0;
+	}
+	return _row;
+}
+void CFrame::height(int h) {									//set height
+	_height = h;
+}		
+int CFrame::height() const {
+	if(_fullscreen) {
+		return cio::console.getRows();							//returns height of the screen, if fullscreen
+	}
+	return _height;
+}
+void CFrame::width(int w) {
+	_width = w;
+}
+int CFrame::width() const {
+	if(_fullscreen) {
+		return cio::console.getCols();							//returns width of the screen, if fullscreen
+	}
+	return _width;
+}	
+void CFrame::draw(int fn) {										//when you want to figure out your position , use abscol(), absrow(). 
+	int i;
+	char* str;
+	str = new char[width() + 1];
+	for (i = 0; i <= width(); i++){
+		str[i] = ' ';
+	}
+	capture();
+	if (_visible && fn != C_NO_FRAME) {
+		console.setPosition(absrow(), abscol());				//draw first line of frame
+		setLine(str, _border[0], _border[1], _border[2]);		//it will fill str with border_chars
+		console << str;				
+		for (i = 0; i < (height() - 2); i++) {					//draw middle part of frame
+				console.setPosition((absrow() + 1 + i), abscol());
+				setLine(str, _border[7], ' ', _border[3]);	
+				console << str;
+		}
+		console.setPosition((absrow() + 1 + i), abscol());		//draw last line of frame	
+		setLine(str, _border[6], _border[5], _border[4]);
+		console << str;
+		}
+	delete [] str;
+}
+void CFrame::hide(CDirection dir) {
+	cio::restore(absrow(), abscol(), _height, _width, dir, _covered);
+	cio::release((void**)&_covered);	
+}		
+void CFrame::move(CDirection dir) {
+	if (dir == C_MOVED_DOWN) {
+    			if(absrow() + _height < (_cframe -> absrow() + _cframe -> height() - 1)) {	
+                	hide(dir);									//stop overlaping of parent and child border
+                	_row = _row + 1;
+                	draw();
+            	} 
+        	}   
+	else if(dir == C_MOVED_UP) {
+				if((absrow() > _cframe -> absrow() + 1) && absrow() > 0) {
+                	hide(dir);
+                	_row = _row - 1;
+                	draw();
+            	}
+    }
+    else if(dir == C_MOVED_LEFT) {
+   				if((abscol() > _cframe -> abscol() + 1) && abscol() > 0) {
+            		hide(dir);
+    				_col=_col - 1;
+            		draw();
+   				}
+   }
+    else if(dir == C_MOVED_RIGHT) {
+   				if((abscol() + _width) < (_cframe -> abscol() + _cframe -> width() - 1)) {
+   					hide(dir);
+   					_col=_col + 1;
+					draw();
+   				}
+   			}
+   else if(dir == C_STATIONARY){
+        draw();
+   }
+ }
+
+void move(cio::iFrame& im) {									//helper function
+	int kp;														//store pressed key
+	console.setPosition(0, 0);
+	console << "Moving! use arrow keys, or ESC to exit";
+	console >> kp;
+	while(kp != ESCAPE) {										//move frame until ESCAPE
+		if(kp == UP){
+			im.move(C_MOVED_UP);
+		}
+		else if(kp == RIGHT){
+			im.move(C_MOVED_RIGHT);
+		}
+		else if(kp == LEFT){
+			im.move(C_MOVED_LEFT);
+		}
+		else if(kp == DOWN){
+			im.move(C_MOVED_DOWN);
+		}
+	console >> kp;    
+	}
+	im.draw();
+}
+} //end of namespace/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CField.h
+
+#ifndef CField_H
+#define CField_H
+#include "cframe.h"
+
+namespace cio {
+
+class CField : public CFrame {
+	protected:
+		void* _data;
+	public:
+		CField(int row = 0, int col = 0, int width = 0, int height = 0, void* data = NULL, bool visible = false , const char* border=C_BORDER_CHARS);
+		virtual ~CField();
+		void* data() const;		//setters and getters
+		void data(void*);
+		virtual void draw(int n = C_NO_FRAME) = 0;
+		virtual int edit() = 0;	
+		virtual bool editable() const = 0;
+		virtual void set(const void*) = 0;
+	};		//end of class
+}		//End of cio 
+
+#endif/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CField.cpp
+#include "cfield.h"
+namespace cio {	
+CField::CField(int row, int col, int width, int height, void* data , bool visible, const char* border) : CFrame(row, col, width, height, visible, border) {
+	_data = data;
+}
+CField::~CField() {}					//Empty constructor only that does nothing
+void* CField::data() const { 			//data getters 	
+		return _data;
+}
+void CField::data(void* temp_data) {	//data setters
+	_data = temp_data;
+}  	
+}										//end of cio for now/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CLabel.h
+
+#ifndef _CLabel_H_
+#define _CLabel_H_
+#include "cfield.h"
+
+namespace cio {
+	class CLabel : public CField {
+		private:
+			void allocateAndCopy(const char* Str);
+		public:
+			CLabel(const char* lbl_data, int row, int col, int length = -1);
+			CLabel(int row,int col, int length);
+			~CLabel();
+			CLabel(const CLabel& L);
+			void draw(int n = C_NO_FRAME);
+			int edit();
+			bool editable() const;
+			void set(const void*);
+	};
+
+}
+#endif/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CLabel.cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include "clabel.h"
+#include "consoleplus.h"
+#include <cstring>
+#include "console.h"
+using namespace std; 
+
+namespace cio {
+CLabel::CLabel(const char* lbl_data, int row, int col, int length) : CField(row, col, length) {
+	if(strlen(lbl_data) > length) {									//constructor which allocate memory as 
+		width(length - 2);											//per length and string length
+		allocateAndCopy(lbl_data);  	
+	}
+	else {
+		if(length > 0) {
+			width(length);
+			allocateAndCopy(lbl_data);
+		}
+		else {
+			width(strlen(lbl_data));
+			allocateAndCopy(lbl_data);
+		}
+	}	
+}		
+
+CLabel::CLabel(int row, int col, int length) : CField(row, col, length)  {
+		width(length);												//construcotr which stores empty string in data
+		allocateAndCopy((char*)"");
+}
+CLabel::~CLabel() {													//deallocation of memory
+	if(data()) {
+		delete[] (char*)_data;
+		_data = (void*)NULL;
+	}
+}
+CLabel::CLabel(const CLabel& L) : CField(L) {						//copy constructor
+	if(this != &L) {
+		height(L.height());
+		width(L.width());
+		row(L.row());												// seting member variables
+		col(L.col());
+		if(L._data != NULL) { 
+			if(_data) {	
+				delete [] (char*)_data;
+				data((void*)NULL);
+			}
+		allocateAndCopy((char*)L._data);
+		}
+		else {
+			data((void*)NULL);
+		}
+	}
+}
+void CLabel::allocateAndCopy(const char* Str) {						//function which allocate memory
+	if(strlen(Str) < width()) {
+		_data = new char[width() + 1];								//width of field + 1 
+		strcpy((char*)_data, Str);
+		((char*)_data)[width()] = '\0';								//calling CField data setter
+	}
+	else {
+		_data = new char[width() + 1];								//width of field + 1 
+		strncpy((char*)_data, Str, width());
+		((char*)_data)[width()] = '\0';								//calling CField data setter
+	}
+}
+void CLabel::draw(int n) {											//draw function
+	CFrame::draw(n);
+	cio::display((char*)_data, absrow() + 1, abscol() + 1, width());	
+}			
+int CLabel::edit() {											   //edit which returns not editabe
+	draw();
+	return C_NOT_EDITABLE;
+}
+bool CLabel::editable() const {										//return false
+	return false;
+}
+void CLabel::set(const void* str) {									//set function to allocate string length memory
+	width(strlen((char*) str));
+	if(_data) {
+		delete [] (char*)_data;
+		data((void*)NULL);
+	}
+	allocateAndCopy((char*)str);
+}
+}																	//end of cio /* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CLine.h
+
+#ifndef _CLINE_H_
+#define _CLINE_H_
+#include "cfield.h"
+
+namespace cio {
+	class CLine : public CField {
+		void allocateAndCopy(const char*);
+		int _curpos;
+		int _offset;
+		int _tmp_Row;
+		int _tmp_Col;
+		int _tmp_length;
+		bool* _tmp_insertMode;
+		int _maxchars;			//store temorary maxchars for string allocation
+	public:
+		CLine(const char* str, int row, int col, int length, int maxChars, bool* insertMode, bool bordered = false, 
+			const char* border = C_BORDER_CHARS);
+		
+		CLine(int row, int col, int length, int maxChars, bool* insertMode, bool bordered = false,
+			const char* = C_BORDER_CHARS);
+		~CLine();
+		void draw(int n = C_NO_FRAME);
+		int edit();
+		bool editable() const;
+		void set(const void*);
+	};
+}
+#endif/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//CLine.cpp
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <cstring>
+#include "cline.h"
+#include "consoleplus.h"
+#include "console.h"
+
+namespace cio {
+CLine::CLine(const char* str, int row, int col, int length, int maxChars, bool* insertMode, bool bordered,				
+		const char* border) : CField(row, col, length, (bordered) ? 3 : 1, (void*) str, bordered, border) {
+	_curpos = 0;
+	_offset = 0;									//constructor which set temporary variables and initiaze string
+	_tmp_insertMode = insertMode;
+	_maxchars = maxChars; 
+	allocateAndCopy(str);
+}
+CLine::CLine(int row, int col, int length, int maxChars, bool* insertMode, bool bordered,
+		const char* border) : CField(row, col, length, (bordered) ? 3 : 1, (void*)NULL, bordered, border) {
+	_curpos = 0;								   //constructor which set temporary variables and initiaze empty string
+	_offset = 0;
+	_maxchars = maxChars;  
+	_tmp_insertMode = insertMode;
+	allocateAndCopy("");
+}
+CLine::~CLine() { 
+		delete [] (char*)_data;						  //delete fields data
+		_data = (void*)NULL;
+}
+void CLine::allocateAndCopy(const char* Str) {	  //allocate maxchars length memory to string		
+		_data = new char[_maxchars + 1];
+		strcpy((char*)_data, Str);
+		for(int i = strlen(Str); i < _maxchars; i++) {
+			((char*)_data)[i] = (char)NULL;
+		}
+		((char*)_data)[_maxchars] = '\0';
+}
+void CLine::draw(int n) {						 //draw function which draws frame and data
+	CFrame::draw();
+	cio::display((char*)data() + _offset, absrow() + 1, abscol() + 1, bordered() ? width() - 2 : width());	
+}	
+int CLine::edit() {								//retuen pressed key and handles editing of string
+	return cio::edit((char*)data(), absrow() + 1, abscol() + 1,bordered() ? width() - 2 : width(), _maxchars,
+	_tmp_insertMode, &_offset, &_curpos);
+}
+bool CLine::editable() const {					//return true
+	return true;
+}		
+void CLine::set(const void* temp) {				//set function which discard and initialize new string
+	if(data() != (void*)NULL) {
+		delete [] (char*)_data;
+		_data = (void*)NULL;
+	}
+	allocateAndCopy((char*)temp);
+}
+}												//end of cio
+/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//cbutton.h
+
+#ifndef cbutton_H
+#define cbutton_H
+#include "cfg.h"
+#include "cfield.h"
+#include "cframe.h"
+#include "console.h"
+#include "keys.h"
+
+namespace cio {
+	class CButton : public CField {
+		void allocateAndCopy(const char* str);
+	  public:
+		CButton(const char* Str, int Row, int Col, bool Bordered = true, const char* Border = C_BORDER_CHARS);
+		virtual ~CButton();
+		void draw(int n = C_NO_FRAME);
+		int edit();
+		bool editable()const;
+		void set(const void*);
+	};
+}
+#endif/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+//cbutton.cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include "cbutton.h"
+#include <cstring>
+#include "console.h"
+#include "consoleplus.h"
+using namespace std;
+
+namespace cio {
+void CButton:: allocateAndCopy(const char* str) {
+	unsigned int i;
+	char* temp = new char[strlen(str) + 3];							//prefix + suffix + 1
+	temp[0]=' ';
+
+	for (i = 1; i < strlen(str) + 1; i++) {
+		temp[i] = str[i - 1];
+	}
+	temp[i] = ' ';
+	temp[i + 1] = '\0';
+	data((void*)temp);												//setting CField new string with prefix and suffix
+}
+CButton::CButton(const char *Str, int Row, int Col, bool Bordered, const char* Border) 
+		: CField(Row, Col, (Bordered) ? (strlen(Str) + 4) : (strlen(Str) + 2), (Bordered) ? (3) : (1), NULL, Bordered , Border) {	
+			allocateAndCopy(Str);									//leave enough space for the prefix/suffix characters [ ] 			
+}
+CButton::~CButton() {												//destructor, deallocate memory
+	if(data()) {
+		delete[] (char*)_data;
+	}
+}
+void CButton::draw(int fn) {										//draw function which draw border and string
+	CFrame::draw();
+	if(bordered()) {
+		cio::display((char*)data(), absrow() + 1, abscol() + 1, 0);
+	}
+	else {
+		cio::display((char*)data(), absrow(), abscol(), 0);
+	}
+}
+int CButton:: edit() {												//edit function which does multiple things in once
+	char* str = new char [strlen((char*)data()) + 1];				//setting string with "[" and "]"
+	strcpy(str, (char*)data());										//Cfield getters
+	str[0] = '[';
+	str[strlen(str) - 1] = ']';
+	str[strlen(str)] = '\0'; 
+	data((void*)str);												//Cfield setters
+	CButton::draw();												//draw new string
+	CFrame::goMiddle();												//goto the middle of string
+	int key;
+	console >> key;													//take key and return key if ESCAPE or SPACE
+	if (key == ENTER || key == SPACE) {
+		key = C_BUTTON_HIT;
+	}
+	str[0] = ' ';													//set string to previous state
+	str[strlen(str) - 1] = ' ';
+	data((void*)str);												//Cfield setters
+	CButton::draw();												//draw new string
+	CFrame::goMiddle();												//goto the middle of string
+	return key;														//return key
+}
+bool CButton:: editable()const {									//return true
+	return true;
+}
+void CButton:: set(const void* str) {								//set new string and height and width
+	if(data()) {
+		delete[] (char*)data();
+	}
+	allocateAndCopy((char*)str);
+	CFrame::height((CFrame::bordered()) ? (3) : (1));
+	CFrame::width((CFrame::bordered()) ? (strlen((char*)str) + 4) : (strlen((char*)str) + 2));
+}
+}																	//end of cio/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+/* Assignment 1											*/
+/* Line editing facility								*/
+/* consolelplus.h										*/
+
+/*	This function displays the C-style, null-terminated string pointed to
+	by str, starting at row row and column col of the console screen in a
+	field of fieldLen characters.  
+
+	Row value 0 refers to the top row, and column value 0 refers to the
+	left-most column.  If the string is longer than fieldLen, your function
+	displays the first fieldLen characters.  If the string is shorter than
+	fieldLen, your function displays the portion of the entire string that
+	fits on the screen, followed by enough trailing spaces to fill out the
+	field completely.
+
+	If fieldLen is 0 or less, your function displays the portion of the
+	entire string that fits on the screen with no trailing spaces.  
+
+	Your function positions the cursor after the last character displayed,
+	but excluding any added trailing spaces, if the last character is not
+	in the last column of the screen; otherwise, your function positions
+	the cursor under the last character on the screen.
+
+	Your function does not flush the output buffer. The results are
+	undefined if the starting position of the string is not within the
+	dimensions of the screen. 
+*/
+namespace cio {
+	void display(const char *str, int row, int col, int fieldLen);
+
+/*	This function edits the C-style, null-terminated string pointed to by str.  
+	The parameter row holds the row(0 is the top row) of the string on the console screen.  
+	The parameter col holds the starting column (0 is the left-most column) on the screen.  
+	The parameter fieldLength holds the length of the editable field. 
+
+	The string may be larger than the field itself, in which case part of the string is hidden from view. 
+	The parameter maxStrLength holds the maximum length of the string, excluding the null byte. 
+	The parameter insertMode points to a bool variable that holds the current insert mode of the string.  
+	The parameter insertMode receives the address of a variable that stores the current editing mode - insert or overwrite.
+
+	The parameter strOffset points to an int variable that holds the initial offset of the string within the field;
+	that is, the index of the character in the string that initially occupies the first character position in the field.
+	The parameter curPosition points to an int variable that holds the initial cursor position within the field; that is, 
+	the index of the character in the field at which the cursor is initially placed. 
+*/
+	int edit(char *str, int row, int col, int fieldLength, int maxStrLength,
+		 bool* insertMode, int* strOffset, int* curPosition);
+}/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+/* Assignment 1											*/
+/* Line editing facility								*/
+/* consolelineedit.cpp									*/
+/* This assignment basically focus on editing and displaying a string and manipulating it passed by another functions. */
+
+#define _CRT_SECURE_NO_WARNINGS		//supress the errors/warnings caused because of strcpy_s for this program
+
+#include <iostream>					
+#include <cstring>
+using namespace std;
+#include "console.h"		//The Header file which contains Prototypes for display and edit function	
+#include "consoleplus.h"	// Console Input Output Library Header File
+#include "keys.h"			//Header file which contains #define key codes
+
+namespace cio {
+void display(const char *str, int row, int col, int fieldLen) {		//Body of the display function
+	
+	if(!str) {											//return back from function, if str is NULL
+		return;
+	}
+	int t = 0;											//variable declaration parts
+	int numCharsToPrint	= 0;
+	int space = cio::console.getCols() - col;
+	int strLen = std::strlen(str);
+
+	if (!fieldLen) {									// if fieldlen is 0 or NULL, display str as it is without trailing spaces.
+		numCharsToPrint = strLen;
+	}
+	else if(strLen < fieldLen) {						// if string length < fieldlength, display string with trailing space
+		 numCharsToPrint = strLen;
+		 t = fieldLen - strLen;
+	}
+	else {												//print string, if fieldlength =  string length
+		numCharsToPrint = fieldLen;
+	}
+	if(space < strLen) {								//print no. of character, if max_col - cols is less than string
+		numCharsToPrint = space;		
+	}
+	for (int i = 0; i < numCharsToPrint; i++) {			//For-loop which prints characters on the specified position
+		cio::console.setPosition(row, col + i);
+		cio::console.setCharacter(str[i]);
+		cio::console.setPosition(row, col + i);
+		cio::console.drawCharacter();
+	} 
+	if(t != 0) {										//For loop to print trailing spaces
+		for(int i = strLen; i <= fieldLen - 1; i++) {
+		cio::console.setPosition(row, col + i);
+		cio::console.setCharacter(' ');
+		cio::console.setPosition(row, col + i);
+		cio::console.drawCharacter();
+		}
+	}
+}														//End of display function
+
+
+int edit(char *str, int row, int col, int fieldLength, int maxStrLength,
+		 bool* insertMode, int* strOffset, int* curPosition) {
+		
+		bool done = false;										//while loop counter
+		int key = 0;											//int which stores inputted key 
+		int strLength = strlen(str);							//Backup of the original Values
+		int tempOffset = *strOffset;						
+		int tempCurPos = *curPosition;
+		char* tempStr = new char[strLength + 1];
+		strcpy(tempStr, str);									//copying string in temprory variable
+			
+		if(*strOffset > strLength) {							//setting offset to string length
+			*strOffset =  strLength;
+		}
+		else if(*strOffset == (int)NULL) {						//setting offset to 0
+			*strOffset =  0;
+		}
+		
+		if(*curPosition > fieldLength) {						//setting curposition to fieldlength
+			*curPosition = fieldLength - 1;
+		}
+		else if(*curPosition > strLength - (*strOffset)) {		//setting position to end of the string
+			*curPosition = strLength - (*strOffset);
+		}
+		else if(*curPosition == (int)NULL) {					//setting curposition to 0
+			 *curPosition = 0;
+		}
+		if(*insertMode == true) {								//play beep when user tries to insert more than maxlength
+			if(strLength > maxStrLength) {						//and when insertmode is true
+				cio::console << '\a';
+			}
+		}
+		else if(*insertMode == false) {							//play beep when user tries to insert more than maxlength
+			if(*curPosition + *strOffset + 1 > strLength) {		//and when insertmode is true
+				cio::console << '\a';
+			}
+		}
+		
+		while(!done) {											//while loop starting
+			display(str + *strOffset, row, col, fieldLength);	//Calls to Display Function
+			cio::console.setPosition(row, col + *curPosition);	//setting starting position of cursor
+			cio::console >> key;								//extracting pressed key by user
+			switch(key) {										//start of switch case
+				case ENTER:
+				case TAB:
+				case UP:
+				case DOWN:
+				case PGUP:
+				case PGDN:
+				case F(1):
+				case F(2):
+				case F(3):										//smooth scroll down of switch cases, which make done flag true, 
+				case F(4):										//to exit from while loop
+				case F(5):
+				case F(6):
+				case F(7):
+				case F(8):
+				case F(9):
+				case F(10):
+				case F(11):
+				case F(12):
+					done = true;
+					break;
+				case ESCAPE:									//Escape case, returns original strings and values
+					*strOffset   = tempOffset;
+					*curPosition = tempCurPos;
+					strcpy(str, tempStr);
+					done = true;
+					break;
+				case LEFT:										//LEFT case, Moves the cursor left one character, and change offset as well 
+					if(*curPosition != 0) {
+						(*curPosition)--;
+					}
+					else if(*strOffset != 0) {
+						(*strOffset)--;
+					}
+					break;
+				case RIGHT:										//RIGHT case, Moves the cursor left one character, and change offset as well
+					if(*curPosition < fieldLength - 1) {		
+						(*curPosition)++;
+					}
+					else if(*strOffset > 0){
+						(*strOffset)++;
+					}
+					break;
+				case HOME:										//HOME case, set cursor position and string offset to 0
+					*curPosition = *strOffset = 0;				
+					break;
+				case END:										//END case, set cursor to the end of the string or at the edge of the screen, changes offset if necessory 
+					for(int d = *strOffset + *curPosition; d < strLength; d++) {
+						if(*curPosition < fieldLength - 1) {
+							if(str[*curPosition] && d != fieldLength) {
+								(*curPosition)++;
+							}
+						}	
+						else {
+							(*strOffset)++;
+						}	
+					} 
+					break;
+				case INSERT:									//INSERT case, turns insert mode on and off, for insert/ overstrike mode. 
+					*insertMode = !*insertMode;
+					break;
+				case DEL:										//DEL case, discards the character at the current cursor position and moves all afterward characters
+                    int d;					
+					for(d = *strOffset + *curPosition; d < strLength + 1; d++) {
+						str[d] = str[d + 1];
+					} 
+					break;
+				case BACKSPACE:									//BACKSPACE case, discards the character to the left of the current cursor position, 
+					if(*curPosition) {							//if possible, moves the characters at and to the right of the cursor position one position to the left,
+						for(int i = *curPosition + *strOffset; i < strLength + 1; i++) {
+								str[i - 1] = str[i];			// if possible, and positions the cursor one character to the left, if possible
+						}
+						if(*curPosition > 0) {
+							(*curPosition)--;
+						}
+						else if(*strOffset > 0) {
+							(*strOffset)--;
+						}
+					}
+					break;
+				default:			
+					if(key >= ' ' && key <='~') {				//DEFAULT case, handles string writing in insert and overwrite mode.
+						if(*insertMode) {						//Insert Mode, write character in string and move cursor
+							if(strLength < maxStrLength) {
+								for( int i = strLength; i >= (*curPosition + *strOffset); i--) {
+										str[i + 1] = str[i];
+								}
+								str[*strOffset + *curPosition] = key;
+								if (*curPosition < fieldLength - 1) {
+										(*curPosition)++;
+								}		 
+								else {
+									(*strOffset)++;
+								}
+							}
+						} 
+						else {									//Over-strike Mode, overwrites character in string
+							if(strLength < maxStrLength) {
+								str[*strOffset + *curPosition] = key;
+							}
+							if(*curPosition < fieldLength -1) {
+								(*curPosition)++;
+							} else {
+								(*strOffset)++;
+							}
+					   }
+					}
+					break;
+		}														//End of switch statement
+	}															//End of while loop
+	return key;													//return key pressed by user to exit function
+}																//End of edit function
+}																//end of cio#pragma once
+#ifndef __FS_CDialog_H__
+#define __FS_CDialog_H__
+#include "cfg.h"
+#include "cframe.h"
+namespace cio{
+    class CField;
+    class CDialog: public CFrame{
+    private:
+        int _fnum;
+        int _curidx;
+        CField** _fld;
+        bool* _dyn;
+        bool _editable;
+        unsigned int _fldSize;
+    public:
+        CDialog(CFrame *Container = (CFrame*)0,
+            int Row = -1, int Col = -1, 
+            int Width = -1, int Height = -1, 
+            bool Borderd = false,
+            const char* Border=C_BORDER_CHARS);
+        virtual ~CDialog();
+        void draw(int fn = C_FULL_FRAME);
+        int edit(int fn = C_FULL_FRAME);
+
+        int add(CField* field, bool dynamic = true);
+        int add(CField& field, bool dynamic = false);
+        CDialog& operator<<(CField* field);
+        CDialog& operator<<(CField& field);
+
+        bool editable() const;
+        int numFields()const;
+        int curIndex()const;
+
+        CField& operator[](unsigned int index);
+        CField& curField() const;
+    };
+}
+#endif#include "cfg.h"
+#include "cfield.h"
+#include "cdialog.h"
+#include "console.h"
+#include "keys.h"
+
+#define C_INITIAL_NO_FIELDS 50
+
+namespace cio{
+  CDialog::CDialog(CFrame *Container, 
+                     int Row , int Col , 
+                     int Width , int Height , 
+                     bool Bordered,const char* Border):
+            CFrame(Row,Col,Width,Height,Bordered,
+                    Border,Container),_fnum(0), _curidx(0) {
+    int i;
+    _editable = false;
+    _fldSize = C_INITIAL_NO_FIELDS;
+    _fld = new CField*[C_INITIAL_NO_FIELDS];
+    _dyn = new bool[C_INITIAL_NO_FIELDS];
+    for(i=0;i<C_INITIAL_NO_FIELDS;i++){
+      _fld[i] = (CField*)0;
+      _dyn[i] = false;
+    }
+  }
+  CDialog::~CDialog(){
+    int i;
+    for(i=0;i<_fnum;i++){
+      if(_fld[i] && _dyn[i]){
+        delete _fld[i];
+      }
+    }
+  }
+  void CDialog::draw(int fn){
+    if(fn == C_FULL_FRAME){
+      CFrame::draw();
+      fn = 0;
+    }
+    if(fn == 0){
+      for(int i=0;i<_fnum;i++){
+        _fld[i]->draw();
+      }
+    }
+    else{
+      _fld[(fn-1)%_fnum]->draw();
+    }
+  }
+
+  #define GONEXT(x) (x=((x<(_fnum-1))?(x+1):0))
+  #define GOPREV(x) (x=((x>0)?(x-1):(_fnum-1)))
+  int CDialog::edit(int fn){
+    int key = 0;
+    bool done = false;
+    bool down = true;
+    if(!_editable) {
+      done = true;
+      draw(fn);
+      console >> key;
+    }
+    else if(fn <= 0){
+      draw(fn);
+    }
+    if(fn > 0){
+      _curidx = (fn - 1) % _fnum; 
+    }
+    while(!done){
+      key = _fld[_curidx]->edit();
+      switch(key){
+        case 0:
+          if(down){
+            GONEXT(_curidx);
+          }
+          else{
+            GOPREV(_curidx);
+          }
+          break;
+        case ENTER:
+        case TAB:
+        case DOWN:
+          down = true;
+          GONEXT(_curidx);
+          break;
+        case UP:
+          down = false;
+          GOPREV(_curidx);
+          break;
+        default:
+          done = true;
+          break;
+      }
+    }
+    return key;
+  }
+
+  int CDialog::add(CField* field, bool dynamic){
+    int idx = -1;
+    if(_fnum == _fldSize){
+      unsigned int i;
+      _fldSize+=20;
+      CField** temp = new CField*[_fldSize];
+      bool* dtemp = new bool[_fldSize];
+      for(i = 0; i< _fldSize - 20;i++){
+        temp[i] = _fld[i];
+        dtemp[i] = _dyn[i];
+      }
+      for(;i<_fldSize;i++){
+        temp[i] = (CField*)0;
+        dtemp[i] = false;
+      }
+      delete[] _fld;
+      delete[] _dyn;
+      _fld = temp;
+      _dyn = dtemp;
+    }
+    field->frame(this);
+    _fld[_fnum] = field;
+    _dyn[_fnum] = dynamic;
+    _editable = _editable || field->editable();
+    idx = _fnum;
+    _fnum++;
+    return idx;
+  }
+  int CDialog::add(CField& field, bool dynamic){
+    return add(&field, dynamic);
+  }
+  CDialog& CDialog::operator<<(CField* field){
+    add(field);
+    return *this;
+  }
+  CDialog& CDialog::operator<<(CField& field){
+    add(field);
+    return *this;
+  }
+
+  bool CDialog::editable() const{
+    return _editable;
+  }
+  int CDialog::numFields()const{
+    return _fnum;
+  }
+  int CDialog::curIndex()const{
+    return _curidx;
+  }
+
+  CField& CDialog::operator[](unsigned int index){
+    return *_fld[index % _fnum];
+  }
+
+  CField& CDialog::curField() const{
+    return *_fld[_curidx];
+  }
+
+}// Console Input Output Library - Backup and Restore Support
+ // consolebackup.cpp
+ //
+ // Fardad Soleimanloo, Chris Szalwinski
+ // August 27 2011
+ // Version 1.0
+ //
+ #include "console.h"
+ #include "consolebackup.h"
+ #include "cfg.h"         // for the CDirection enumeration constants
+
+ namespace cio {
+
+     // capture backs up a portion of the console buffer to newly
+     // allocated memory and returns the address of that memory
+     //
+     void* capture(int row, int col, int height, int width) {
+         int i = 0;
+         char* capbuf = new char[height * width];
+
+         if (capbuf) {
+             for(int r = 0; r < height; r++) {
+                 for(int c = 0; c < width; c++) {
+                     console.setPosition(row + r, col + c);
+                     capbuf[i++] = console.getCharacter();
+                 }
+             }
+         }
+         return (void*)capbuf;
+     }
+
+     // restore retrieves a previously backed up portion of
+     // the console buffer and displays those characters from
+     // the restored buffer that have changed as a result of
+     // the motion (dir)
+     //
+     void restore(int row, int col, int height, int width,
+      CDirection dir, void* capbuf) {
+         int i = 0;
+
+         if (capbuf) {
+             for (int r = 0; r < height; r++) {
+                 for (int c = 0; c < width; c++) {
+                     console.setPosition(row + r, col + c);
+                     console.setCharacter(((char*)capbuf)[i++]);
+                 }
+             }
+             // redraws all or part of the restored portion
+             if (dir == C_MOVED_DOWN) {
+                 // redraw the top border
+                 for (int c = 0; c < width; c++) {
+                     console.setPosition(row, col + c);
+                     console.drawCharacter();
+                 }
+             }
+             else if (dir == C_MOVED_RIGHT) {
+                 // redraw the left border
+                 for (int r = 0; r < height; r++) {
+                     console.setPosition(row + r, col);
+                     console.drawCharacter();
+                 }
+             }
+             else if (dir == C_MOVED_LEFT) {
+                 // redraw the right border
+                 for (int r = 0; r < height; r++) {
+                     console.setPosition(row + r, col + width - 1);
+                     console.drawCharacter();
+                 }
+             }
+             else if (dir == C_MOVED_UP) {
+                 // redraw the bottom border
+                 for (int c = 0; c < width; c++) {
+                     console.setPosition(row + height - 1, col + c);
+                     console.drawCharacter();
+                 }
+             }
+             else if (dir == C_STATIONARY) {
+                 // redraw the entire portion
+                 for (int r = 0; r < height; r++) {
+                     for (int c = 0; c < width; c++) {
+                         console.setPosition(row + r, col + c);
+                         console.drawCharacter();
+                     }
+                 }
+             }
+         }
+     }
+
+     // release deallocates the memory for the backed-up portion of
+     // the console buffer at *capbuf and sets the address of that
+     // memory to NULL
+     //
+     void release(void** capbuf) {
+
+         if (*capbuf) {
+             delete [] (char*)*capbuf;
+             *capbuf = (void*)0;
+         }
+     }
+
+ } // end of namespace cio for now/* Kashyap Babubhai Patel								*/
+/* Computer Programmer (CPD)							*/
+/* Semester - 4											*/
+/* Seneca College of Applied Arts and Technology		*/
+/* School of Information & Communication Technology		*/
+/* E-mail: kbpatel13@myseneca.ca						*/
+
+#ifndef consoleplus_h
+#define consoleplus_h
+#include "cfg.h"
+
+namespace cio {
+
+void* capture(int r, int c, int h, int w); 
+void restore(int r, int c, int h, int w, CDirection d, void* b); 
+void release(void**);
+}
+#endif#ifndef _FS_CONSOLE_H_
+#define _FS_CONSOLE_H_
+
+// Console Input Output Library - C++ Module
+// console.h
+//
+// Fardad Soleimanloo, Chris Szalwinski
+// August 25 2011
+// Version 1.0
+//
+
+namespace cio {
+
+// Console holds the state of the Console Input Output Facility
+//
+class Console {
+    char* buffer;        // screen buffer
+    int   curRow;        // cursor position - current row
+    int   curCol;        // cursor position - current column
+    int   bufrows;       // number of rows
+    int   bufcols;       // number of columns
+    Console& operator=(const Console&); // prevent assignments
+    Console(const Console&);            // prevent copying
+    void  clearBuffer(); // clear the buffer
+    int   getKey();       // extract a key from console input
+  public:
+    Console();
+    ~Console();
+    int   getRows() const;
+    int   getCols() const;
+    void  getPosition(int& row, int& col) const;
+    void  setPosition(int r, int c);
+    char  getCharacter() const;
+    void  setCharacter(char c);
+    void  drawCharacter();
+    void  clear();
+    void  pause();
+    friend Console& operator>>(Console&, int&);
+    friend Console& operator<<(Console&, char);
+};
+
+Console& operator<<(Console&, const char*);
+
+extern Console console; // console object - external linkage
+
+} // end namespace cio
+#endif// Console Input Output Library - Unified Implementation
+// console.cpp
+//
+// Fardad Soleimanloo, Chris Szalwinski
+// August 25 2011
+// Version 1.0
+//
+
+/* table of platforms */
+#define CIO_LINUX       1
+#define CIO_MICROSOFT   2
+#define CIO_BORLAND     3
+#define CIO_UNIX        4
+
+/* auto-select your platform here */
+#if   defined __BORLANDC__
+    #define CIO_PLATFORM CIO_BORLAND
+    #define CIO_LOWER_LEVEL_H_ <conio.h>
+#elif defined _MSC_VER
+    #define CIO_PLATFORM CIO_MICROSOFT
+    #include <windows.h>
+    #define CIO_LOWER_LEVEL_H_ <conio.h>
+#elif defined __MACH__
+    #define CIO_PLATFORM CIO_UNIX
+    #define CIO_LOWER_LEVEL_H_ <curses.h>
+#elif defined __GNUC__
+    #define CIO_PLATFORM CIO_LINUX
+    #define CIO_LOWER_LEVEL_H_ <ncurses.h>
+#elif !defined __BORLANDC__ && !defined _MSC_VER && !defined __GNUC__ && !defined __MACH__
+    #error CONSOLE_PLT is undefined
+#endif
+
+extern "C" {
+    #include CIO_LOWER_LEVEL_H_
+}
+
+#include "console.h"
+#include "keys.h"
+
+namespace cio { // continuation of cio namespace
+
+//----------------- Platform-Dependent Section ------------------------------
+//
+
+#if CIO_PLATFORM == CIO_LINUX || CIO_PLATFORM == CIO_UNIX
+
+// Console initializes the Console Input Output object
+//
+Console::Console() {
+    ::initscr();
+    ::noecho();
+    ::cbreak();
+    ::keypad(stdscr,1);
+    bufrows = LINES;
+    bufcols = COLS;
+    if (bufrows * bufcols > 0)
+        buffer  = new char[bufrows * bufcols];
+    else
+        buffer = 0;
+    clear();
+}
+
+Console::~Console() {
+    clear();
+    setPosition(0, 0);
+    delete [] buffer;
+    ::endwin();
+}
+
+void Console::clear() {
+    ::erase();
+    clearBuffer();
+}
+
+int Console::getKey() {
+    int key;
+    ::refresh();
+    key = ::getch();
+    switch(key) {
+        // KEY_* is defined in *curses.h
+        case KEY_HOME:  key = HOME;   break;
+        case KEY_UP:    key = UP;     break;
+        case KEY_DOWN:  key = DOWN;   break;
+        case KEY_LEFT:  key = LEFT;   break;
+        case KEY_RIGHT: key = RIGHT;  break;
+        case KEY_END:   key = END;    break;
+        case KEY_NPAGE: key = PGDN;   break;
+        case KEY_PPAGE: key = PGUP;   break;
+        case KEY_DC:    key = DEL;    break;
+        case KEY_IC:    key = INSERT; break;
+        case KEY_F(1):  key = F(1);   break;
+        case KEY_F(2):  key = F(2);   break;
+        case KEY_F(3):  key = F(3);   break;
+        case KEY_F(4):  key = F(4);   break;
+        case KEY_F(5):  key = F(5);   break;
+        case KEY_F(6):  key = F(6);   break;
+        case KEY_F(7):  key = F(7);   break;
+        case KEY_F(8):  key = F(8);   break;
+        case KEY_F(9):  key = F(9);   break;
+        case KEY_F(10): key = F(10);  break;
+        case KEY_F(11): key = F(11);  break;
+        case KEY_F(12): key = F(12);  break;
+        case KEY_ENTER: key = ENTER;  break;
+        case KEY_BACKSPACE: key = BACKSPACE; break;
+        default:
+            if (key < 0 || key > '~')
+                key = UNKNOWN;
+    }
+
+    return key;
+}
+
+// setPosition moves the cursor to row r column c
+//
+void Console::setPosition(int r, int c) {
+    curRow = r;
+    curCol = c;
+    ::move(r, c);
+}
+
+// drawCharacter draws the character at the current cursor position
+//
+void Console::drawCharacter() {
+    if (buffer) ::addch(buffer[curRow * bufcols + curCol]);
+}
+
+// << inserts character c at the current cursor position
+//
+Console& operator<<(Console& os, char c) {
+    ::addch(c);
+    os.setCharacter(c);
+    return os;
+}
+
+#elif CIO_PLATFORM == CIO_MICROSOFT
+
+HANDLE  consh;
+CONSOLE_SCREEN_BUFFER_INFO bufinfo;
+
+// Console initializes the Console Input Output object
+//
+Console::Console() {
+    consh = ::GetStdHandle(STD_OUTPUT_HANDLE);
+    ::GetConsoleScreenBufferInfo(consh, &bufinfo);
+    bufrows = bufinfo.srWindow.Bottom + 1;
+    bufcols = bufinfo.srWindow.Right + 1;
+    if (bufrows * bufcols > 0)
+        buffer  = new char[bufrows * bufcols];
+    else
+        buffer = 0;
+    clear();
+}
+
+Console::~Console() {
+    clear();
+    setPosition(0, 0);
+    delete [] buffer;
+}
+
+void Console::clear() {
+    DWORD
+        len = bufrows * bufcols,
+        actual;
+    TCHAR ch = ' ';
+    COORD coord;
+    coord.X = 0;
+    coord.Y = 0;
+    ::FillConsoleOutputCharacter(consh, ch, len, coord, &actual);
+    clearBuffer();
+}
+
+int Console::getKey() {
+    int key;
+    key = ::_getch();
+    /* Platform Specific Key Code */
+    #define KEY_ENTER  13
+    if (key == 0) {
+        key = ::_getch();
+        /* Platform Specific Key Codes */
+        #define KEY_F0     58
+        #define KEY_F(n)   (KEY_F0+(((n)<=10)?(n):((n) + 64)))
+        switch(key) {
+            case KEY_F(1):  key = F(1);   break;
+            case KEY_F(2):  key = F(2);   break;
+            case KEY_F(3):  key = F(3);   break;
+            case KEY_F(4):  key = F(4);   break;
+            case KEY_F(5):  key = F(5);   break;
+            case KEY_F(6):  key = F(6);   break;
+            case KEY_F(7):  key = F(7);   break;
+            case KEY_F(8):  key = F(8);   break;
+            case KEY_F(9):  key = F(9);   break;
+            case KEY_F(10): key = F(10);  break;
+            default: key = UNKNOWN;
+        }
+    } else if (key == 224) {
+        key = ::_getch();
+        /* Platform Specific Key Codes */
+        #define KEY_HOME   71
+        #define KEY_UP     72
+        #define KEY_DOWN   80
+        #define KEY_LEFT   75
+        #define KEY_RIGHT  77
+        #define KEY_END    79
+        #define KEY_NPAGE  81
+        #define KEY_PPAGE  73
+        #define KEY_DC     83
+        #define KEY_IC     82
+        #define KEY_ENTER  13
+        switch(key) {
+            case KEY_HOME:  key = HOME;   break;
+            case KEY_UP:    key = UP;     break;
+            case KEY_DOWN:  key = DOWN;   break;
+            case KEY_LEFT:  key = LEFT;   break;
+            case KEY_RIGHT: key = RIGHT;  break;
+            case KEY_END:   key = END;    break;
+            case KEY_NPAGE: key = PGDN;   break;
+            case KEY_PPAGE: key = PGUP;   break;
+            case KEY_DC:    key = DEL;    break;
+            case KEY_IC:    key = INSERT; break;
+            case KEY_F(11): key = F(11);  break;
+            case KEY_F(12): key = F(12);  break;
+            default: key = UNKNOWN;
+        }
+    } else if (key < 0 || key > '~')
+        key = UNKNOWN;
+    else if (key == KEY_ENTER)
+        key = ENTER;
+
+    return key;
+}
+
+// setPosition moves the cursor to row r column c
+//
+void Console::setPosition(int r, int c) {
+    curRow = r;
+    curCol = c;
+    COORD coord;
+    coord.X = c;
+    coord.Y = r;
+    ::SetConsoleCursorPosition(consh, coord);
+}
+
+// drawCharacter draws the character at the current cursor position
+//
+void Console::drawCharacter() {
+    if (buffer) ::_putch(buffer[curRow * bufcols + curCol]);
+}
+
+// << inserts character c at the current cursor position
+//
+Console& operator<<(Console& os, char c) {
+    ::_putch(c);
+    os.setCharacter(c);
+    return os;
+}
+
+#elif CIO_PLATFORM == CIO_BORLAND
+
+// Console initializes the Console Input Output object
+//
+Console::Console() {
+    struct text_info x;
+    ::gettextinfo(&x);
+    bufrows = x.screenheight;
+    bufcols = x.screenwidth;
+    if (bufrows * bufcols > 0)
+        buffer  = new char[bufrows * bufcols];
+    else
+        buffer = 0;
+    clear();
+}
+
+Console::~Console() {
+    clear();
+    setPosition(0, 0);
+    delete [] buffer;
+}
+
+void Console::clear(){
+    ::clrscr();
+    clearBuffer();
+}
+
+int Console::getKey() {
+    int key;
+    key = ::getch();
+    /* Platform Specific Key Code */
+    #define KEY_ENTER  13
+    if (key == 0) {
+        key = ::getch();
+        /* Platform Specific Key Codes */
+        #define KEY_HOME   71
+        #define KEY_UP     72
+        #define KEY_DOWN   80
+        #define KEY_LEFT   75
+        #define KEY_RIGHT  77
+        #define KEY_END    79
+        #define KEY_NPAGE  81
+        #define KEY_PPAGE  73
+        #define KEY_DC     83
+        #define KEY_IC     82
+        #define KEY_F0     58
+        #define KEY_F(n)   (KEY_F0+(((n)<=10)?(n):((n) + 64)))
+        switch(key) {
+            case KEY_HOME:  key = HOME;   break;
+            case KEY_UP:    key = UP;     break;
+            case KEY_DOWN:  key = DOWN;   break;
+            case KEY_LEFT:  key = LEFT;   break;
+            case KEY_RIGHT: key = RIGHT;  break;
+            case KEY_END:   key = END;    break;
+            case KEY_NPAGE: key = PGDN;   break;
+            case KEY_PPAGE: key = PGUP;   break;
+            case KEY_DC:    key = DEL; break;
+            case KEY_IC:    key = INSERT; break;
+            case KEY_F(1):  key = F(1);   break;
+            case KEY_F(2):  key = F(2);   break;
+            case KEY_F(3):  key = F(3);   break;
+            case KEY_F(4):  key = F(4);   break;
+            case KEY_F(5):  key = F(5);   break;
+            case KEY_F(6):  key = F(6);   break;
+            case KEY_F(7):  key = F(7);   break;
+            case KEY_F(8):  key = F(8);   break;
+            case KEY_F(9):  key = F(9);   break;
+            case KEY_F(10): key = F(10);  break;
+            case KEY_F(11): key = F(11);  break;
+            case KEY_F(12): key = F(12);  break;
+            default:
+                key = UNKNOWN;
+        }
+    } else if (key < 0 || key > '~')
+        key = UNKNOWN;
+    else if (key == KEY_ENTER)
+        key = ENTER;
+
+    return key;
+}
+
+// setPosition moves the cursor to row r column c
+//
+void Console::setPosition(int r, int c) {
+    curRow = r;
+    curCol = c;
+    ::gotoxy(c + 1, r + 1);
+}
+
+// drawCharacter draws the character at the current cursor position
+//
+void Console::drawCharacter() {
+    if (buffer) ::putch(buffer[curRow * bufcols + curCol]);
+}
+
+// << inserts character c at the current cursor position
+//
+Console& operator<<(Console& os, char c) {
+    ::putch(c);
+    os.setCharacter(c);
+    return os;
+}
+
+#endif
+
+//--------------------------- Platform-Independent Section ------------------
+
+// Definition of the Console Input Output object
+//
+Console console;
+
+// getRows retrieves the number of rows in the output object
+//
+int  Console::getRows() const {
+    return bufrows;
+}
+
+// getCols retrieves the number of columns in the output object
+//
+int  Console::getCols() const {
+    return bufcols;
+}
+
+// getPosition retrieves the current position of the cursor
+//
+void Console::getPosition(int& r, int& c) const {
+    r = curRow;
+    c = curCol;
+}
+
+// clearBuffer clears the cio buffer and resets the cursor
+// position to the top left corner
+//
+void Console::clearBuffer() {
+    for (int i = 0; buffer && i < bufrows * bufcols; i++)
+        buffer[i] = ' ';
+    setPosition(0, 0);
+}
+
+// pause accepts a key press from the input object
+//
+void Console::pause() {
+    getKey();
+}
+
+// setCharacter sets the character at the current cursor position to c
+// and moves the currect cursor position one character towards the end
+//
+void Console::setCharacter(char c) {
+    if (buffer)
+        buffer[curRow * bufcols + curCol++] = c;
+}
+
+// getCharacter returns the character at the current cursor position
+//
+char Console::getCharacter() const {
+    return buffer ? buffer[curRow * bufcols + curCol] : ' ';
+}
+
+// >> extracts the next key from the input object
+//
+Console& operator>>(Console& is, int& c) {
+    c = is.getKey();
+    return is;
+}
+
+// << inserts string str at the current cursor position
+
+Console& operator<<(Console& os, const char* str) {
+    for(int i = 0; str[i]; i++)
+        os << str[i];
+    return os;
+}
+
+} // end namespace cio
+#ifndef _FS_KEYS_H_
+#define _FS_KEYS_H_
+// Keys Header
+// keys.h
+//
+// Fardad Soleimanloo, Chris Szalwinski
+// August 25 2011
+// Version 1.0
+
+/* Virtual Key Codes */
+
+#define TAB       '\t'
+#define BACKSPACE '\b'
+#define ALARM     '\a'
+#define ESCAPE    27
+#define ENTER     '\n'
+#define SPACE     ' '
+#define HOME      1000
+#define UP        1001
+#define DOWN      1002
+#define LEFT      1003
+#define RIGHT     1004
+#define END       1005
+#define PGDN      1006
+#define PGUP      1007
+#define DEL       1008
+#define INSERT    1009
+#define F(n)      (1009+(n))
+#define UNKNOWN   9999
+
+#endif// Test Master for Assignment 2
+// OOP344 - BTP300
+// a2test.cpp
+// 
+// August 27 2011
+// Fardad Soleimanloo, Chris Szalwinski
+// Version 1.0
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+//#include <crtdbg.h>
+
+#include <cstring>
+#include <cstdio>
+#include "console.h"
+#include "consoleplus.h"
+#include "keys.h"
+#include "cframe.h"      // for test 1
+#include "cdialog.h"     // for test 2
+#include "clabel.h"      // for test 2
+#include "cline.h"       // for test 3
+#include "cbutton.h"     // for test 4
+
+#define TEST_NO 4        // select your test here
+
+using namespace cio;
+const int ROW_ERRORS = 22;
+
+int  requestKey(int request);
+int  reportBadKey(int request, int key, const char *msg);
+void label(int key);
+void testLineEditor();
+void testFrame();
+void testDialogLabel();
+void testLineEdit();
+void testButton();
+
+int main() {
+    #if TEST_NO == 0
+    testLineEditor();
+    #elif TEST_NO == 1
+    testFrame();
+    #elif TEST_NO == 2
+    testDialogLabel();
+    #elif TEST_NO == 3
+    testLineEdit();
+    #elif TEST_NO == 4
+    testButton();
+    #endif
+    console << "Your test " << TEST_NO + '0' << " is complete.\n\r\n\r";
+    console << "Press Enter key to finish ... \n\r";
+    console.pause();
+}
+
+void testLineEditor() {
+    bool insert = false;
+    int i, j, key, rows, cols, errors = 0;
+    int offset = 0, index = 0; 
+    char str[81] = "abcdefghijklmnopqrstuvwxyz";
+    char  in[81] = "AbcdefghiJKLmnopqrstuvwxyZ";
+    char out[81] = "AbcdefghiJKLmnopqrstuvwxyZ";
+    char  ed[81] = "AbCdefghiJKLmnopqrstuv12";
+    char end[81] = "AbCdefg12JKLmnopqrstuv12";
+    char del[81] = "AbCdef7892JKLmnopqrstuv12";
+
+    // draw the top and left borders
+    //
+    rows = console.getRows();
+    cols = console.getCols();
+    console.clear();
+    console.setPosition(0, 0);
+    j = (int)'0';
+    for (i = 0; i < cols; i++) {
+        console << j;
+        if (j == (int)'9')
+            j = (int)'0';
+        else
+            j++;
+    }
+    j = (int) '0';
+    for (i = 0; i < rows; i++) {
+        console.setPosition(i, 0);
+        console << j;
+        if (j == (int)'9')
+            j = (int)'0';
+        else
+            j++;
+    }
+
+    // display instructions
+    //
+    display("abcdefghijklmnopqrstuvwxyz", 12, 5, 0);
+    display("Perform the following instructions in turn", 1, 1, 0);
+    display("Press Right Arrow Twice, Down Arrow Twice", 3, 3, 0);
+    display("Using Arrow and ASCII keys, change \"jkl\" to \"JKL\"", 4, 3, 0);
+    display("Press Home, A, End, Left Arrow, Z, Home, Enter", 5, 3, 0);
+    display("Press Home, a, End, Left Arrow, z, Home, Escape", 6, 3, 0);
+    display("Press C, End, Backspace 4 times, 1, 2, Home, Enter", 7, 3, 0);
+    display("Press End, Home, Right Arrow 7 times, 1, 2, Enter", 8, 3, 0);
+    display("Press Delete Twice, Insert, 7, 8, 9, Enter", 9, 3, 0);
+    
+    // start the test
+    //
+    console.setPosition(3, 3);
+    errors += requestKey(RIGHT);
+    if (!errors)console.setPosition(3, 4);
+    errors += requestKey(RIGHT);
+    if (!errors)console.setPosition(3, 5);
+    errors += requestKey(DOWN);
+    if (!errors)console.setPosition(4, 5);
+    errors += requestKey(DOWN);
+    if (!errors)console.setPosition(5, 5);
+    if (!errors) {
+        key = edit(str, 14, 5, 26, 80, &insert, &offset, &index);
+        if (key != ENTER) errors += reportBadKey(ENTER, key, (const char*)NULL);
+        if (strcmp(str, out)) errors += reportBadKey(ENTER, 0, "Incorrect string result");
+        key = edit(str, 15, 5, 26, 80, &insert, &offset, &index);
+        if (key != ESCAPE) errors += reportBadKey(ESCAPE, key, (const char*)NULL);
+        if (strcmp(str, in)) errors += reportBadKey(ESCAPE, 0, "Incorrect string result");
+        index = 2;
+        key = edit(str, 16, 5, 26, 80, &insert, &offset, &index);
+        if (key != ENTER) errors += reportBadKey(ENTER, key, (const char*)NULL);
+        if (strcmp(str, ed)) errors += reportBadKey(ENTER, 0, "Incorrect string result");
+        index = 9;
+        key = edit(str, 14, cols - 10, strlen(str), 80, &insert, &offset, &index);
+        if (key != ENTER) errors += reportBadKey(ENTER, key, (const char*)NULL);
+        if (strcmp(str,end)) errors += reportBadKey(ENTER, 0, "Incorrect string result");
+        index = 6;
+        key = edit(str, 17, 5, 26, 80, &insert, &offset, &index);
+        if (key != ENTER) errors += reportBadKey(ENTER, key, (const char*)NULL);
+        if (strcmp(str,del)) errors += reportBadKey(ENTER, 0, "Incorrect string result");
+    }
+
+    // finish the test
+    //
+    console.setPosition(ROW_ERRORS - 3, 3);
+    if (errors)
+        console << "Continue working! ";
+    else
+        console << "If no errors, prepare screen shot (include top row of numbers) ... ";
+
+    console.setPosition(ROW_ERRORS - 2, 3);
+    console << "Press Enter key to exit!";
+    console.pause();
+    console.clear();
+}
+
+void testFrame() {
+    bool done = false;
+    CFrame frame;
+    CFrame outer(5, 10, 50, 15, true, "+-+|+-+|", &frame);
+    CFrame inner(5, 10, 20, 5, true, C_BORDER_CHARS, &outer);
+
+    outer.draw();
+    inner.draw();
+    console.setPosition(0, 0);
+    console << "Press any key...";
+    console.pause();
+
+    do {
+        int key;  
+        console.setPosition(0, 0);
+        console << "ESC: exit, F6: Move Container, F7: Move Inner border";
+        console >> key;
+        switch(key) {
+            case ESCAPE:
+                done = true;
+                break;
+            case F(6):
+                move(outer);
+                inner.draw();
+                break;
+            case F(7):
+                move(inner);
+                break;
+        }
+    } while(!done);
+
+    outer.hide();
+    inner.hide();
+    console.clear();
+}
+
+void testDialogLabel() {
+    bool i       = true;
+    bool done    = false;
+    int  loop    = 0;
+    bool visible = false;
+
+    // background
+    for(int k = 0; k < console.getRows(); k += 2) {
+        for(int m = 0; m < console.getCols() - 10; m += 10) {
+            console.setPosition(k, m);
+            i=!i;
+            console << (i ? "OOP344" : "BTP300");
+        }
+    }
+
+    CDialog screen;
+    CDialog dialog(&screen, 5, 10, 53, 16, true, "+-+|+-+|");
+    CLabel  label("This is a non-dynamic label", 5, 3);
+
+    dialog.add(new CLabel("Testing Read Only Dialog", 1, 12));
+    dialog << new CLabel("A trimmed dynamic label goes here, and I'm checking if it is trimmed", 3, 3, 50) << label;
+    int mesIndx = dialog.add(new CLabel("Test", 7, 3, 40));
+    dialog << new CLabel("ESC to exit, F6 to move, other to loop", 9, 3);
+    dialog[mesIndx].set("Setting the message to see what happens");
+    dialog << new CLabel("Press F6, Right Arrow Twice, Up Arrow Once, ESC", 11, 3);
+    dialog << new CLabel("If there are no errors take your screen shot!", 13, 3);
+    dialog.draw();
+
+    do {
+        int key = dialog.edit(mesIndx+1);
+        loop++;
+        std::sprintf((char*)dialog[mesIndx].data(), "LOOP No: %d", loop);    
+        switch(key) {
+            case ESCAPE:
+                done = true;
+                break;
+            case F(6):
+                move(dialog);
+                break;
+        }
+    } while(!done);
+
+    dialog.hide();
+    console.clear();
+}
+
+void testLineEdit() {
+    int  loop     = 0;
+    bool i        = true;
+    bool insert   = true;
+    bool done     = false;
+    char str[81]  = "I want to edit this thing!";
+	 
+    // background
+    for(int k = 0; k < console.getRows(); k += 2) {
+        for(int m = 0; m < console.getCols() - 10; m += 10) {
+            console.setPosition(k, m);
+            i=!i;
+            console << (i ? "OOP344":"BTP300");
+        }
+    }
+
+    CDialog app;
+    CDialog dialog(&app, 5, 10, 50, 15, true, "+-+|+-+|");
+    CLabel  label("Enter some text down here:", 6, 4);
+
+    app << new CLabel("Dialog and Line Editor Tester", 0, 0);
+
+    dialog.add(new CLabel("Testing Label and Line edit", 0, 12));
+    dialog << new CLabel("Name: ", 4, 3)
+     << new CLine(4, 9, 20, 40, &insert) << label
+     << new CLine(str, 7, 4, 40, 80, &insert, true);
+    int mesIndx = dialog.add(new CLabel(10, 5, 40));
+    dialog << new CLabel("ESC/F2 to exit, F6 to Move, F7 to loop++", 2, 3);
+    dialog[mesIndx].set("Setting the message to see what happens");
+    dialog.draw();
+
+    do {
+        int key = dialog.edit(mesIndx + 1);
+        loop++;
+        std::sprintf((char*)dialog[mesIndx].data(), "LOOP No: %d", loop);    
+        switch(key) {
+            case ESCAPE:
+            case F(2):
+                done = true;
+                break;
+            case F(6):
+                move(dialog);
+                break;
+            case F(7):
+            break;
+        }
+    } while(!done);
+
+    console.clear();
+    console.setPosition(10, 0);
+    console << "First  Lineedit data:";
+    console.setPosition(10, 23);
+    console << (char*)dialog[2].data();
+    console.setPosition(12, 0);
+    console << "Second Lineedit data:";
+    console.setPosition(12, 23);
+    console << (char*)dialog[4].data();
+    console.setPosition(14, 0);
+}
+
+void testButton() {
+    bool done    = false;
+    bool i       = true;
+    int fn       = C_FULL_FRAME;
+
+    for(int k = 0; k < console.getRows(); k += 2) {
+        for(int m = 0; m < console.getCols() - 10; m += 10) {
+            console.setPosition(k, m);
+            i=!i;
+            console << (i ? "OOP344" : "BTP300");
+        }
+    }
+
+    CDialog app;
+    CDialog dialog(&app, 5, 10, 50, 15, true, "+-+|+-+|");
+    CButton inc("Increase", 9, 10);
+    CButton dec("Decrease", 9, 30);
+    dialog.add(new CLabel("Testing Buttons (bordered)", 1, 12, 30));
+    dialog.add(new CLabel("Press F10 to toggle button borders visiblity", 3, 3));
+    int mesIndx = dialog.add(new CLabel(7, 24, 10));
+
+    int j = 100;
+    dialog << inc << dec
+      << new CLabel("Press Escape to exit", 12, 15);
+    dialog[mesIndx].set("100");
+
+    do {
+        int key = dialog.edit(fn);
+        switch(key){
+            case ESCAPE:
+                done = true;
+                break;
+            case F(10):
+                inc.bordered(!inc.bordered());
+                dec.bordered(!dec.bordered());
+                dialog[0].set(inc.bordered() ? "Testing Buttons (bordered)" : "Testing Buttons (no border)");
+                dialog.draw();
+                break;
+            case F(6):
+                move(dialog);
+                break;
+            case C_BUTTON_HIT:
+                if (&dialog.curField() == &inc) {
+                    j++;
+                    fn = 4;
+                }
+                else {
+                    j--;
+                    fn = 5;
+                }
+                std::sprintf((char*)dialog[mesIndx].data(), "%d", j);
+                dialog[mesIndx].draw();
+                break;
+        }
+    } while(!done);
+
+    console.clear();
+    console.setPosition(10, 0);
+    console << "Final Button Value:";
+    console.setPosition(10, 23);
+    console << (char*)dialog[mesIndx].data();
+    console.setPosition(12, 0);
+}
+
+//--------------------------- test 0 functions ------------------------------
+//
+// Request a key press, accept the key code and
+// report the difference if any
+//
+int requestKey(int request) {
+    int key, rc = 0;
+
+    console >> key;
+    if (key != request) {
+        rc = reportBadKey(request, key, 0);
+    }
+    return rc;
+}
+
+/* Report a faulty key press */
+int reportBadKey(int request, int key, const char *msg) {
+    static int row = ROW_ERRORS;
+
+    if (row != ROW_ERRORS) {
+        console.setPosition(ROW_ERRORS - 1, 8);
+        console << "s!";
+    } else {
+        console.setPosition(ROW_ERRORS - 1, 3);
+        console << "Error!";
+    }
+    console.setPosition(row++, 3);
+    if (key != 0) {
+        console << "Key requested : ";
+        label(request);
+        console.setPosition(row++, 3);
+        console << "You pressed   : ";
+        label(key);
+    } else
+        console << msg;
+    return 1;
+}
+
+// Displays key label at the current cursor position 
+//
+void label(int key) {
+    if (key >= ' ' && key <= '~') {
+        console << key;
+        console << "            ";
+    } 
+    else {
+        switch (key) {
+            case LEFT:      console << "Left Arrow   "; break;
+            case RIGHT:     console << "Right Arrow  "; break;
+            case HOME:      console << "Home         "; break;
+            case END:       console << "End          "; break;
+            case INSERT:    console << "Insert       "; break;
+            case DEL:       console << "Delete       "; break;
+            case BACKSPACE: console << "Backspace    "; break;
+            case ESCAPE:    console << "Escape       "; break;
+            case ENTER:     console << "Enter        "; break;
+            case TAB:       console << "Tab          "; break;
+            case UP:        console << "Up Arrow     "; break;
+            case DOWN:      console << "Down Arrow   "; break;
+            case PGUP:      console << "Page Up      "; break;
+            case PGDN:      console << "Page Down    "; break;
+            case F(1):      console << "F1           "; break;
+            case F(2):      console << "F2           "; break;
+            case F(3):      console << "F3           "; break;
+            case F(4):      console << "F4           "; break;
+            case F(5):      console << "F5           "; break;
+            case F(6):      console << "F6           "; break;
+            case F(7):      console << "F7           "; break;
+            case F(8):      console << "F8           "; break;
+            case F(9):      console << "F9           "; break;
+            case F(10):     console << "F10          "; break;
+            case F(11):     console << "F11          "; break;
+            case F(12):     console << "F12          "; break;
+            case UNKNOWN:   console << "Unknown Key  "; break;
+            default:        console << "non-ASCII key";
+        }
+    }
+}
+kbpatel13@matrix:~/oop344_new/Assignment2> cat cfg.h cframe.h cframe.cpp cfield.hh cfield.cpp clabel.h clabel.cpp cline.h cline.cpp cbutton.h cbutton.cpp consolepplus.h consolelineedit.cpp cdialog.h cdialog.cpp consolebackup.cpp consolebackup..h console.h console.cpp keys.h a2test.cpp[A[A[A[Cwhoami[K
+[K
+[K
+[K[A[A[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cscript w9.txtw9[Kg++ -o w9 w9.cpp [K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kg++ -lncurses cframe.cpp cfield.cpp c label.cpp cline.cpp cbutton.cpp cdialog.cpp consolelineedit.cpp console.cpp cons olebackup.cpp a2test.cpp
+kbpatel13@matrix:~/oop344_new/Assignment2> exit
+exit
+
+Script done on Sun 13 Apr 2014 12:57:15 PM EDT
